@@ -1,4 +1,4 @@
-﻿using HashTest.rhash;
+﻿using hashTest.rhash;
 
 namespace HashTest {
     class Program {

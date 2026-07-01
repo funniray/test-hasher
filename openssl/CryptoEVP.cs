@@ -5,6 +5,9 @@ namespace hashTest.openssl;
 internal partial class CryptoEVP
 {
     [LibraryImport("libcrypto", EntryPoint = "EVP_get_digestbyname", StringMarshalling = StringMarshalling.Utf8)]
+    internal static partial IntPtr OpenSslProviderLoad(IntPtr engine, string providerId);
+
+    [LibraryImport("libcrypto", EntryPoint = "EVP_get_digestbyname", StringMarshalling = StringMarshalling.Utf8)]
     internal static partial IntPtr EvpGetDigestByName(string algorithm);
     
     [LibraryImport("libcrypto", EntryPoint = "EVP_MD_CTX_new", StringMarshalling = StringMarshalling.Utf8)]

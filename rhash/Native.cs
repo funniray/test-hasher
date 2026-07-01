@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace HashTest.rhash;
+namespace hashTest.rhash;
 
 public partial class Native
 {

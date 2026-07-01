@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
-namespace HashTest.rhash;
+namespace hashTest.rhash;
 
 public class RhashMD5 : HashAlgorithm
 {

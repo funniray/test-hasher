@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 using System.IO.Hashing;
 using System.Text;
 using hashTest.openssl;
-using HashTest.rhash;
+using hashTest.rhash;
 using MD5 = hashTest.openssl.MD5;
 using SHA1 = hashTest.openssl.SHA1;
 
@@ -129,7 +129,7 @@ namespace HashTest {
                         tasks.Add(Task.Run(()=>
                         {
                             var time = Stopwatch.StartNew();
-                            var md4 = MD4.Create();
+                            var md4 = RhashMD4.Create();
                             hashes.TryAdd(localIndex, md4.ComputeHash(read));
                             time.Stop();
                             ed2ktime += time.ElapsedMilliseconds;
@@ -145,7 +145,7 @@ namespace HashTest {
                         digests = digests.Concat(subhash).ToArray();
                     }
 
-                    var md4 = MD4.Create();
+                    var md4 = RhashMD4.Create();
                     string hash = BytesToHex(md4.ComputeHash(digests), null);
 
                     long time = timer.ElapsedMilliseconds;

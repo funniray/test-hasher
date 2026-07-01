@@ -14,6 +14,7 @@ public class MD4 : HashAlgorithm
 
     private MD4()
     {
+        CryptoEVP.OpenSslProviderLoad(IntPtr.Zero, "legacy");
         Initialize();
     }
 
