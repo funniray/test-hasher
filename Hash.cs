@@ -5,12 +5,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.IO.Hashing;
 using System.Text;
-using hashTest.openssl;
 using hashTest.rhash;
-using MD5 = hashTest.openssl.MD5;
-using SHA1 = hashTest.openssl.SHA1;
 
-namespace HashTest {
+namespace hashTest {
 
     public class HashStructure {
         public string? Hash {get;set;}
@@ -93,10 +90,10 @@ namespace HashTest {
         }
 
 
-        public void Hash(string url, bool crcEnabled, bool sha1Enabled, bool md5Enabled) {
+        public ResponseStructure Hash(string url, bool crcEnabled, bool sha1Enabled, bool md5Enabled) {
             long bytesRead = 0;
             var timer = Stopwatch.StartNew();
-            using (var stream = File.Open(url, FileMode.Open)) {
+            using (var stream = File.Open(url, FileMode.Open, FileAccess.Read)) {
                 using (var reader = new BinaryReader(stream)) {
                     var tasks = new List<Task>();
                     var hashes = new System.Collections.Concurrent.ConcurrentDictionary<int, byte[]>();
@@ -159,7 +156,9 @@ namespace HashTest {
                         timer.ElapsedMilliseconds
                     );
 
-                    Console.WriteLine(JsonSerializer.Serialize(response, SourceGenerationContext.Default.ResponseStructure));
+                    return response;
+
+                    // Console.WriteLine(JsonSerializer.Serialize(response, SourceGenerationContext.Default.ResponseStructure));
 
                     // if (crcEnabled)
                     //     Console.WriteLine("CRC32: {0} (took {1}ms)", BytesToHex(crc.Hash, null), timers[0]);
