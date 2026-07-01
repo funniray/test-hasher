@@ -21,12 +21,11 @@ public class RhashMD5 : HashAlgorithm
 
     protected override byte[] HashFinal()
     {
-        Native.rhash_final(_ctx, IntPtr.Zero);
-        Native.rhash_free(_ctx);
-        
+        Native.rhash_final(_ctx, IntPtr.Zero);        
         Span<byte> dest = new Span<byte>(new byte[16]);
         Native.rhash_print(ref MemoryMarshal.GetReference(dest), _ctx, Native.RHashIds.RHASH_MD5,
             Native.RhashPrintSumFlags.RHPR_RAW);
+        Native.rhash_free(_ctx);
         return dest.ToArray();
     }
 
