@@ -1,10 +1,14 @@
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.IO.Hashing;
 using System.Text;
 using hashTest.openssl;
+using HashTest.rhash;
+using MD5 = hashTest.openssl.MD5;
+using SHA1 = hashTest.openssl.SHA1;
 
 namespace HashTest {
 
@@ -44,11 +48,11 @@ namespace HashTest {
     class Hasher {
         private static int ED2K_BLOCK_LENGTH = 1024 * 9500;
 
-        private double[] timers = new double[3]{0,0,0};
+        private Stopwatch[] timers = new []{new Stopwatch(), new Stopwatch(), new Stopwatch()};
         private double ed2ktime = 0;
 
         private void hashBlock(HashAlgorithm alg, byte[] stream, bool final, int timerIndex) {
-            var timer = System.Diagnostics.Stopwatch.StartNew();
+            timers[timerIndex].Start();
 
             if (final) {
                 alg.TransformFinalBlock(stream, 0, stream.Length);
@@ -56,15 +60,15 @@ namespace HashTest {
                 alg.TransformBlock(stream, 0, stream.Length, null, 0);
             }
 
-            timers[timerIndex] += timer.ElapsedMilliseconds;
+            timers[timerIndex].Stop();
         }
         
         private void hashBlock(NonCryptographicHashAlgorithm alg, byte[] stream, int timerIndex) {
-            var timer = System.Diagnostics.Stopwatch.StartNew();
+            timers[timerIndex].Start();
             
             alg.Append(stream);
 
-            timers[timerIndex] += timer.ElapsedMilliseconds;
+            timers[timerIndex].Stop();
         }
 
         private byte[] getCrc32(Crc32 crc)
@@ -90,9 +94,8 @@ namespace HashTest {
 
 
         public void Hash(string url, bool crcEnabled, bool sha1Enabled, bool md5Enabled) {
-            timers = new double[3]{0,0,0};
             long bytesRead = 0;
-            var timer = System.Diagnostics.Stopwatch.StartNew();
+            var timer = Stopwatch.StartNew();
             using (var stream = File.Open(url, FileMode.Open)) {
                 using (var reader = new BinaryReader(stream)) {
                     var tasks = new List<Task>();
@@ -125,7 +128,7 @@ namespace HashTest {
 
                         tasks.Add(Task.Run(()=>
                         {
-                            var time = System.Diagnostics.Stopwatch.StartNew();
+                            var time = Stopwatch.StartNew();
                             var md4 = MD4.Create();
                             hashes.TryAdd(localIndex, md4.ComputeHash(read));
                             time.Stop();
@@ -142,15 +145,15 @@ namespace HashTest {
                         digests = digests.Concat(subhash).ToArray();
                     }
 
-                    MD4 md4 = MD4.Create();
+                    var md4 = MD4.Create();
                     string hash = BytesToHex(md4.ComputeHash(digests), null);
 
                     long time = timer.ElapsedMilliseconds;
 
                     ResponseStructure response = new(
-                        crcEnabled ? new(BytesToHex(getCrc32(crc), null), timers[0]) : null,
-                        sha1Enabled&&sha1.Hash!=null ? new(BytesToHex(sha1.Hash, null), timers[1]) : null,
-                        md5Enabled&&md5.Hash!=null ? new(BytesToHex(md5.Hash, null), timers[2]) : null,
+                        crcEnabled ? new(BytesToHex(getCrc32(crc), null), timers[0].ElapsedMilliseconds) : null,
+                        sha1Enabled&&sha1.Hash!=null ? new(BytesToHex(sha1.Hash, null), timers[1].ElapsedMilliseconds) : null,
+                        md5Enabled&&md5.Hash!=null ? new(BytesToHex(md5.Hash, null), timers[2].ElapsedMilliseconds) : null,
                         new(hash, ed2ktime),
                         Math.Round((bytesRead/(1024*1024))/(time/1000.0), 2),
                         timer.ElapsedMilliseconds

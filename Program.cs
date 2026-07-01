@@ -1,6 +1,10 @@
-﻿namespace HashTest {
+﻿using HashTest.rhash;
+
+namespace HashTest {
     class Program {
         static int Main(string[] args) {
+            Native.rhash_library_init();
+            
             if (args.Length == 0) {
                 Console.WriteLine("Usage: testFile [--crc | -C] [--sha1 | -S] [--md5 | -M] [--all] file");
                 return 1;

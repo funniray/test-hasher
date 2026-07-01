@@ -3,16 +3,16 @@ using System.Security.Cryptography;
 
 namespace hashTest.openssl;
 
-public class MD4 : HashAlgorithm
+public class MD5 : HashAlgorithm
 {
-    public static new MD4 Create() => new();
+    public static new MD5 Create() => new();
     
     public const int HashSizeInBits = 128;
     public const int HashSizeInBytes = HashSizeInBits / 8;
 
     private IntPtr _ctx = IntPtr.Zero;
 
-    private MD4()
+    private MD5()
     {
         Initialize();
     }
@@ -33,12 +33,12 @@ public class MD4 : HashAlgorithm
 
     public override void Initialize()
     {
-        var algo  = CryptoEVP.EvpGetDigestByName("MD4");
+        var algo  = CryptoEVP.EvpGetDigestByName("MD5");
         _ctx = CryptoEVP.EvpMdCtxNew();
         CryptoEVP.EvpDigestInitEx(_ctx, algo, IntPtr.Zero);
     }
 
-    ~MD4()
+    ~MD5()
     {
         CryptoEVP.EvpMdCtxFree(_ctx);
     }
