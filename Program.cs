@@ -1,4 +1,6 @@
-﻿namespace HashTest {
+﻿using Hash2;
+
+namespace HashTest {
     class Program {
         static int Main(string[] args) {
             if (args.Length == 0) {
@@ -19,8 +21,11 @@
             var file = args[args.Length - 1];
 
             var hasher = new Hasher();
-
             hasher.Hash(file, enableCRC, enableSHA, enableMD5);
+            // Console.WriteLine("wtf");
+            // for (int i = 1; i<512; i*=2) {
+            //     Hasher2.Hash(file, i);
+            // }
             return 0;
         }
     }
