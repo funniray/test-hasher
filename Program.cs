@@ -1,6 +1,4 @@
-﻿using Hash2;
-
-namespace HashTest {
+﻿namespace HashTest {
     class Program {
         static int Main(string[] args) {
             if (args.Length == 0) {

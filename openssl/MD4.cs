@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Swift;
 using System.Security.Cryptography;
 
 namespace hashTest.openssl;

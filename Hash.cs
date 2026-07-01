@@ -1,9 +1,10 @@
 using System.Buffers.Binary;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.IO.Hashing;
+using System.Text;
+using hashTest.openssl;
 
 namespace HashTest {
 
@@ -72,6 +73,21 @@ namespace HashTest {
             BinaryPrimitives.WriteUInt32BigEndian(o, crc.GetCurrentHashAsUInt32());
             return o;
         }
+        
+        public static string BytesToHex(byte[] a, int? len)
+        {
+            string temp = BitConverter.ToString(a);
+
+            // We need to remove the dashes that come from the BitConverter
+            var sb = new StringBuilder((len.GetValueOrDefault(a.Length) - 2)/2); // This should be the final size
+
+            for (int i = 0; i < temp.Length; i++)
+                if (temp[i] != '-')
+                    sb.Append(temp[i]);
+
+            return sb.ToString();
+        }
+
 
         public void Hash(string url, bool crcEnabled, bool sha1Enabled, bool md5Enabled) {
             timers = new double[3]{0,0,0};
@@ -93,7 +109,7 @@ namespace HashTest {
                     
                     while (true) {
                         byte[] read = reader.ReadBytes(ED2K_BLOCK_LENGTH);
-                        Task.WaitAll(new Task[3]{crcTask, sha1Task, md5Task});
+                        Task.WaitAll(new []{crcTask, sha1Task, md5Task});
 
                         if (read.Length <= 0) {break;}
                         var localIndex = i;
@@ -110,10 +126,8 @@ namespace HashTest {
                         tasks.Add(Task.Run(()=>
                         {
                             var time = System.Diagnostics.Stopwatch.StartNew();
-                            var md4 = hashTest.openssl.MD4.Create();
+                            var md4 = MD4.Create();
                             hashes.TryAdd(localIndex, md4.ComputeHash(read));
-                            // var md4 = new MD4();
-                            // hashes.TryAdd(localIndex, md4.GetByteHashFromBytes(read));
                             time.Stop();
                             ed2ktime += time.ElapsedMilliseconds;
                         }));
@@ -128,15 +142,15 @@ namespace HashTest {
                         digests = digests.Concat(subhash).ToArray();
                     }
 
-                    MD4 md4 = new MD4();
-                    string hash = md4.GetHexHashFromBytes(digests);
+                    MD4 md4 = MD4.Create();
+                    string hash = BytesToHex(md4.ComputeHash(digests), null);
 
                     long time = timer.ElapsedMilliseconds;
 
                     ResponseStructure response = new(
-                        crcEnabled ? new(MD4.BytesToHex(getCrc32(crc), null), timers[0]) : null,
-                        sha1Enabled&&sha1.Hash!=null ? new(MD4.BytesToHex(sha1.Hash, null), timers[1]) : null,
-                        md5Enabled&&md5.Hash!=null ? new(MD4.BytesToHex(md5.Hash, null), timers[2]) : null,
+                        crcEnabled ? new(BytesToHex(getCrc32(crc), null), timers[0]) : null,
+                        sha1Enabled&&sha1.Hash!=null ? new(BytesToHex(sha1.Hash, null), timers[1]) : null,
+                        md5Enabled&&md5.Hash!=null ? new(BytesToHex(md5.Hash, null), timers[2]) : null,
                         new(hash, ed2ktime),
                         Math.Round((bytesRead/(1024*1024))/(time/1000.0), 2),
                         timer.ElapsedMilliseconds
@@ -145,11 +159,11 @@ namespace HashTest {
                     Console.WriteLine(JsonSerializer.Serialize(response, SourceGenerationContext.Default.ResponseStructure));
 
                     // if (crcEnabled)
-                    //     Console.WriteLine("CRC32: {0} (took {1}ms)", MD4.BytesToHex(crc.Hash, null), timers[0]);
+                    //     Console.WriteLine("CRC32: {0} (took {1}ms)", BytesToHex(crc.Hash, null), timers[0]);
                     // if (sha1Enabled)
-                    //     Console.WriteLine("SHA1: {0} (took {1}ms)", MD4.BytesToHex(sha1.Hash, null), timers[1]);
+                    //     Console.WriteLine("SHA1: {0} (took {1}ms)", BytesToHex(sha1.Hash, null), timers[1]);
                     // if (md5Enabled)
-                    //     Console.WriteLine("MD5: {0} (took {1}ms)", MD4.BytesToHex(md5.Hash, null), timers[2]);
+                    //     Console.WriteLine("MD5: {0} (took {1}ms)", BytesToHex(md5.Hash, null), timers[2]);
                     // Console.WriteLine("ED2K: {0}", hash);
 
                     // Console.WriteLine("Overall speed: {0}MB/s in {1}ms", Math.Round((bytesRead/(1024*1024))/(time/1000.0), 2), time);
